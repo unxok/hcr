@@ -9,7 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      Listings: {
+      listings: {
         Row: {
           address_address1: string | null
           address_address2: string | null
@@ -30,6 +30,8 @@ export type Database = {
           market_rent: number | null
           marketing_title: string | null
           photos: Json | null
+          pm_listable_uid: string
+          property_management_id: number | null
         }
         Insert: {
           address_address1?: string | null
@@ -51,6 +53,8 @@ export type Database = {
           market_rent?: number | null
           marketing_title?: string | null
           photos?: Json | null
+          pm_listable_uid: string
+          property_management_id?: number | null
         }
         Update: {
           address_address1?: string | null
@@ -72,6 +76,49 @@ export type Database = {
           market_rent?: number | null
           marketing_title?: string | null
           photos?: Json | null
+          pm_listable_uid?: string
+          property_management_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_property_management_id_fkey"
+            columns: ["property_management_id"]
+            isOneToOne: false
+            referencedRelation: "property_managements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_managements: {
+        Row: {
+          accent_color: string
+          accent_color_foreground: string
+          created_at: string
+          display_name: string
+          id: number
+          listing_item_url: string
+          listings_url: string
+          logo_url: string
+        }
+        Insert: {
+          accent_color: string
+          accent_color_foreground?: string
+          created_at?: string
+          display_name: string
+          id?: number
+          listing_item_url: string
+          listings_url: string
+          logo_url: string
+        }
+        Update: {
+          accent_color?: string
+          accent_color_foreground?: string
+          created_at?: string
+          display_name?: string
+          id?: number
+          listing_item_url?: string
+          listings_url?: string
+          logo_url?: string
         }
         Relationships: []
       }

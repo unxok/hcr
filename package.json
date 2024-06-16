@@ -10,11 +10,13 @@
 		"sb-types": "npx supabase gen types typescript --project-id jhnyhxjaidpwzjlufyib --schema public > lib/supabase.types.ts"
 	},
 	"dependencies": {
+		"@radix-ui/react-icons": "^1.3.0",
 		"@radix-ui/react-slot": "^1.0.2",
 		"@supabase/supabase-js": "^2.43.4",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",
 		"embla-carousel-react": "^8.1.5",
+		"geist": "^1.3.0",
 		"lucide-react": "^0.395.0",
 		"next": "14.2.4",
 		"react": "^18",
