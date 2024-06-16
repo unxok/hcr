@@ -18,10 +18,10 @@ export default function RootLayout({
 	return (
 		<html
 			lang='en'
-			className={`${GeistSans.variable} ${GeistMono.variable} dark`}
+			className={`${GeistSans.variable} ${GeistMono.variable} dark flex flex-col justify-center items-center box-border`}
 		>
-			<body className='bg-background'>
-				<header className='w-full bg-secondary flex p-5'>
+			<body className='w-[95%] lg:w-5/6 min-w-0 flex flex-col items-center justify-center'>
+				<header className='hidden md:flex bg-background/50 justify-center py-5 w-full'>
 					<h1 className='text-4xl font-bold tracking-wider w-full'>HCR</h1>
 					<nav className='flex gap-2 justify-center items-center w-full'>
 						<Link
@@ -54,6 +54,8 @@ export default function RootLayout({
 						<Button>sign up</Button>
 					</div>
 				</header>
+				<hr className='w-full' />
+
 				{children}
 			</body>
 		</html>
