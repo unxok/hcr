@@ -21,6 +21,7 @@ export type Database = {
           bathrooms: number | null
           bedrooms: number | null
           cats: boolean | null
+          created_at: string
           default_photo_thumbnail_url: string | null
           deposit: number | null
           dogs: boolean | null
@@ -33,6 +34,8 @@ export type Database = {
           pm_listable_uid: string
           property_management_id: number | null
           square_feet: number | null
+          unlisted_at: string | null
+          updated_at: string
         }
         Insert: {
           address_address1?: string | null
@@ -45,6 +48,7 @@ export type Database = {
           bathrooms?: number | null
           bedrooms?: number | null
           cats?: boolean | null
+          created_at?: string
           default_photo_thumbnail_url?: string | null
           deposit?: number | null
           dogs?: boolean | null
@@ -57,6 +61,8 @@ export type Database = {
           pm_listable_uid: string
           property_management_id?: number | null
           square_feet?: number | null
+          unlisted_at?: string | null
+          updated_at?: string
         }
         Update: {
           address_address1?: string | null
@@ -69,6 +75,7 @@ export type Database = {
           bathrooms?: number | null
           bedrooms?: number | null
           cats?: boolean | null
+          created_at?: string
           default_photo_thumbnail_url?: string | null
           deposit?: number | null
           dogs?: boolean | null
@@ -81,6 +88,8 @@ export type Database = {
           pm_listable_uid?: string
           property_management_id?: number | null
           square_feet?: number | null
+          unlisted_at?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -125,26 +134,52 @@ export type Database = {
         }
         Relationships: []
       }
-      "Test table": {
+    }
+    Views: {
+      current_stats_by_bedrooms: {
         Row: {
-          category: string | null
-          created_at: string
-          id: number
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          category?: string | null
-          created_at?: string
-          id?: number
+          avg_bathrooms: number | null
+          avg_market_rent: number | null
+          bedrooms: number | null
+          cats_allowed: string | null
+          count: number | null
+          dogs_allowed: string | null
+          max_market_rent: number | null
+          median_market_rent: number | null
+          min_market_rent: number | null
         }
         Relationships: []
       }
-    }
-    Views: {
+      current_stats_by_city: {
+        Row: {
+          address_city: string | null
+          avg_bathrooms: number | null
+          avg_bedrooms: number | null
+          avg_market_rent: number | null
+          cats_allowed: string | null
+          count: number | null
+          dogs_allowed: string | null
+          max_market_rent: number | null
+          median_market_rent: number | null
+          min_market_rent: number | null
+        }
+        Relationships: []
+      }
+      current_stats_by_property_management: {
+        Row: {
+          avg_bathrooms: number | null
+          avg_bedrooms: number | null
+          avg_market_rent: number | null
+          cats_allowed: string | null
+          count: number | null
+          display_name: string | null
+          dogs_allowed: string | null
+          max_market_rent: number | null
+          median_market_rent: number | null
+          min_market_rent: number | null
+        }
+        Relationships: []
+      }
       distinct_cities: {
         Row: {
           address_city: string | null
