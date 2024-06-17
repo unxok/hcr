@@ -4,7 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 import { Vortex } from "@/components/ui/vortex";
 import { supabase } from "@/lib/supabase";
-import { cn } from "@/lib/utils";
+import { cn, toNumber } from "@/lib/utils";
 import { Clock, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -174,11 +174,20 @@ export default async function Page() {
 const BedroomAverages = async () => {
   const { data } = await supabase
     .from("current_stats_by_bedrooms")
-    .select("bedrooms, avg_market_rent, median_market_rent")
+    .select("bedrooms, avg_market_rent, median_market_rent, count")
     .gte("bedrooms", 0);
+
+  const total = data?.reduce((acc, d) => acc + toNumber(d?.count), 0);
   return (
-    <BedroomAveragesChart
-      data={data?.map((d) => ({ ...d, bedrooms: d.bedrooms + " bd" })) ?? null}
-    />
+    <>
+      <h2 className="text-xl font-bold">
+        From {total} listings currently in Humboldt County
+      </h2>
+      <BedroomAveragesChart
+        data={
+          data?.map((d) => ({ ...d, bedrooms: d.bedrooms + " bd" })) ?? null
+        }
+      />
+    </>
   );
 };

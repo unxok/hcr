@@ -7,6 +7,8 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import Image from "next/image";
 import { Logo } from "@/components/Logo";
 import { MobileSideBar } from "@/components/MobileSideBar";
+import { getTheme, setTheme } from "./actions/setTheme";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "HCR | Welcome!",
@@ -18,10 +20,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const theme = getTheme();
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable} dark box-border flex flex-col items-center justify-center`}
+      className={`${GeistSans.variable} ${GeistMono.variable} dark box-border flex flex-col items-center justify-center transition-colors`}
     >
       <body className="flex w-[95%] min-w-0 flex-col items-center justify-center lg:w-5/6">
         <header className="flex w-full items-center justify-center bg-background/50 pt-5">
@@ -65,6 +68,7 @@ export default function RootLayout({
             </Link>
           </nav>
           <div className="hidden w-full items-center justify-end gap-1 md:flex">
+            <ThemeToggle />
             <Button className="hover:animate-pulse" variant={"ghost"}>
               login
             </Button>

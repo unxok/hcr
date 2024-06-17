@@ -22,6 +22,7 @@ export const BedroomAveragesChart = ({
         bedrooms: number | string | null;
         avg_market_rent: number | null;
         median_market_rent: number | null;
+        count: number | null;
       }[]
     | null;
 }) => {
@@ -30,20 +31,26 @@ export const BedroomAveragesChart = ({
   const maxMedian = Math.max(
     ...data.map((d) => toNumber(d?.median_market_rent)),
   );
-  const className = "border-border";
   const maxRent =
     Math.round((Math.max(maxAvg, maxMedian) + 2000) / 1000) * 1000;
+  const total = data?.reduce((acc, d) => acc + toNumber(d?.count), 0);
   return (
     <ResponsiveContainer width={"100%"} height={250}>
       <BarChart data={data ?? undefined}>
         {/* <CartesianGrid /> */}
-        <XAxis dataKey={"bedrooms"} />
+        <XAxis dataKey={"bedrooms"}>
+          {/* <Label
+            value={`From ${total} listings currently in Humboldt County`}
+            position={"insideBottomLeft"}
+            offset={-18}
+          /> */}
+        </XAxis>
         <YAxis domain={[0, maxRent]}>
           {/* <Label
             value="monthly rent in dollars"
             position={"insideBottomLeft"}
             angle={270}
-          /> */}
+            /> */}
         </YAxis>
         <Tooltip
           wrapperClassName="md:hidden"
@@ -54,7 +61,7 @@ export const BedroomAveragesChart = ({
             borderColor: "hsl(var(--border))",
           }}
         />
-        <Legend />
+        <Legend align="right" />
         <Bar dataKey={"median_market_rent"} fill="hsl(var(--primary))">
           <LabelList
             dataKey={"median_market_rent"}
