@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import { ReadonlyURLSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 
 /**
@@ -7,7 +8,7 @@ import { twMerge } from "tailwind-merge";
  * @returns A single Tailwind class string
  */
 export function cn(...inputs: ClassValue[]) {
-	return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -18,7 +19,7 @@ export function cn(...inputs: ClassValue[]) {
  * @returns The same value as `p` but with the provided type `T`
  */
 export const assert = <T>(p: unknown) => {
-	return p as T;
+  return p as T;
 };
 
 /**
@@ -37,21 +38,21 @@ export const assert = <T>(p: unknown) => {
  * ```
  */
 export const toNumber = (
-	val: unknown,
-	defaultNumber?: number,
-	considerInvalid?: number
+  val: unknown,
+  defaultNumber?: number,
+  considerInvalid?: number,
 ) => {
-	const num = Number(val);
-	const isInvalid = val === considerInvalid || num === considerInvalid;
-	const considerInvalidIsValid =
-		considerInvalid !== undefined && considerInvalid !== null;
-	if (isInvalid && considerInvalidIsValid) {
-		return defaultNumber ?? 0;
-	}
-	if (Number.isNaN(num)) {
-		return defaultNumber ?? 0;
-	}
-	return num;
+  const num = Number(val);
+  const isInvalid = val === considerInvalid || num === considerInvalid;
+  const considerInvalidIsValid =
+    considerInvalid !== undefined && considerInvalid !== null;
+  if (isInvalid && considerInvalidIsValid) {
+    return defaultNumber ?? 0;
+  }
+  if (Number.isNaN(num)) {
+    return defaultNumber ?? 0;
+  }
+  return num;
 };
 
 /**
@@ -67,16 +68,52 @@ export const toNumber = (
  * ```
  */
 export const toFirstUpperCase: (
-	str: string,
-	wordDelimeter?: string
+  str: string,
+  wordDelimeter?: string,
 ) => string = (str, wordDelimeter) => {
-	const lower = str.toLowerCase();
-	if (wordDelimeter !== undefined && wordDelimeter !== null) {
-		const words = lower.split(wordDelimeter);
-		const resultArr = words.map((w) => toFirstUpperCase(w));
-		return resultArr.join(wordDelimeter);
-	}
-	const chars = lower.split("");
-	chars[0] = chars[0].toUpperCase();
-	return chars.join("");
+  const lower = str.toLowerCase();
+  if (wordDelimeter !== undefined && wordDelimeter !== null) {
+    const words = lower.split(wordDelimeter);
+    const resultArr = words.map((w) => toFirstUpperCase(w));
+    return resultArr.join(wordDelimeter);
+  }
+  const chars = lower.split("");
+  chars[0] = chars[0].toUpperCase();
+  return chars.join("");
+};
+
+/**
+ * Use to generate a search params string for use in URLs
+ * @param searchParams Search Params object from Next
+ * @param obj The object with keys and values to set within the new search params string
+ * @returns Updated search params parsed to a valid string
+ */
+export const createQueryParamsString = (
+  searchParams: ReadonlyURLSearchParams | Record<string, any>,
+  obj: Record<string, any>,
+) => {
+  const arg =
+    searchParams instanceof ReadonlyURLSearchParams
+      ? searchParams.toString()
+      : searchParams;
+  const params = new URLSearchParams(arg);
+  Object.keys(obj).forEach((key) => params.set(key, obj[key]));
+  return params.toString();
+};
+
+/**
+ * Creates an array of numbers from the provided range.
+ * @param start The number to start the array (inclusive)
+ * @param stop The number to stop the array at (exclusive)
+ * @param step The size of steps to take between iterations
+ * @returns An array of numbers
+ */
+export const createRange = (start: number, stop: number, step?: number) => {
+  const a = [start];
+  let b = start;
+  const s = step ?? 1;
+  while (b < stop) {
+    a.push((b += s));
+  }
+  return a;
 };

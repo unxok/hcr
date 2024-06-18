@@ -12,7 +12,7 @@ import { Suspense } from "react";
 export default async function Page() {
   const { data: pms } = await supabase.from("property_managements").select("*");
   return (
-    <div className="dark flex w-full flex-col items-center justify-center gap-8 p-5">
+    <div className="flex w-full flex-col items-center justify-center gap-8 p-5">
       <div className="h-96 w-full overflow-hidden">
         <Vortex
           particleCount={100}
@@ -23,7 +23,7 @@ export default async function Page() {
           baseHue={40}
         >
           <h2 className="animate-fade-right text-5xl font-bold tracking-wide animate-delay-300">
-            One site, all the rentals*
+            One site, <s>all</s> most the rentals*
           </h2>
           <p className="animate-fade-left animate-delay-500">
             *from Humboldt County that is. Sorry everyone else!
@@ -146,25 +146,100 @@ export default async function Page() {
             ),
           )}
         </div>
-        <h3 className="text-xl font-bold">Not supported</h3>
-        <div className="flex flex-wrap gap-2 p-3">
-          <Badge className="bg-secondary text-secondary-foreground">
-            Private landlords
-          </Badge>
-          <Badge className="bg-secondary text-secondary-foreground">
-            Craigslist ads
-          </Badge>
-        </div>
-        <p>
-          <span className="text-muted-foreground">
-            Don't see the one you're thinking of?
-          </span>{" "}
+        {/* <h3 className="text-xl font-bold">Not supported</h3>
+        <p className="text-muted-foreground">
+          Due to technical reasons, listings from any of the following will not
+          be shown on HCR. Click any of the badges to view the listings from
+          their own site.
+        </p>
+        <p className="text-muted-foreground">
+          And I know this looks like a <i>lot</i> of unsupported PMs, but the
+          ones we do support actually have a very large portion of the rental
+          market in Humboldt.
+        </p>
+        <div className="flex flex-wrap gap-2 p-3 [&>*>*]:bg-secondary [&>*>*]:text-secondary-foreground">
           <a
-            href="/request"
-            className={buttonVariants({ variant: "secondary" })}
+            href={
+              "https://humboldt.craigslist.org/search/apa#search=1~gallery~0~0"
+            }
+            target="_blank"
           >
-            Submit a request
+            <Badge>Craigslist ads</Badge>
           </a>
+          <a href={"https://propertymanage.biz/ap"} target="_blank">
+            <Badge>AP Property Management</Badge>
+          </a>
+          <a href={"https://arrow25.com"} target="_blank">
+            <Badge>Arrow Property Management</Badge>
+          </a>
+          <a href={"http://www.bodepropertymanagement.com"} target="_blank">
+            <Badge>Bode Executive Property Management</Badge>
+          </a>
+          <a href={"https://clrealty.com/tenant.cfm"} target="_blank">
+            <Badge>California Lifestyles Realty</Badge>
+          </a>
+          <a
+            href={"https://www.cpmhumboldtrentals.com/available-rentals/"}
+            target="_blank"
+          >
+            <Badge>Complete Property Management</Badge>
+          </a>
+          <a href={"https://www.cottage-realty.com"} target="_blank">
+            <Badge>Cottage Realty</Badge>
+          </a>
+          <a href={"https://www.danco-group.com"} target="_blank">
+            <Badge>Danco</Badge>
+          </a>
+          <a href={"https://kkramer.com/rentals"} target="_blank">
+            <Badge>Kramer Investment Corporation</Badge>
+          </a>
+          <a href={"https://moserproperties.com/properties/"} target="_blank">
+            <Badge>Moser Properties</Badge>
+          </a>
+          <a href={"http://norcoastrentals.com/renters"} target="_blank">
+            <Badge>North Coast Rentals</Badge>
+          </a>
+          <a
+            href={"https://cbcpacificpartners.com/all-available-properties/"}
+            target="_blank"
+          >
+            <Badge>Pacific Partners Property Management</Badge>
+          </a>
+          <a
+            href={
+              "https://six-rivers.com/or_srpm/parallax-template/rentals.php"
+            }
+            target="_blank"
+          >
+            <Badge>Six Rivers Property Management</Badge>
+          </a>
+          <a
+            href={"https://spinksproperty.com/elementor-1875/"}
+            target="_blank"
+          >
+            <Badge>Spinks Property Management</Badge>
+          </a>
+          <a href={"https://strombeckprop.com/"} target="_blank">
+            <Badge>Strombeck Property Management</Badge>
+          </a>
+        </div> */}
+        <p className="text-muted-foreground">
+          Property managements of Humboldt County can be found on{" "}
+          <a
+            className="text-primary"
+            href="https://www.humboldt.edu/housing-reslife/off-campus/humboldt-county-property-managers"
+          >
+            Cal Poly Humboldt's website
+          </a>
+          .
+        </p>
+        <p className="text-muted-foreground">
+          If you are a private landlord or an employee of an unsupported
+          property management and you would like to have your listings shown,
+          please apply for a property manager profile.
+        </p>
+        <p className="py-2">
+          <Button>Apply for PM profile</Button>
         </p>
       </div>
     </div>
@@ -180,9 +255,17 @@ const BedroomAverages = async () => {
   const total = data?.reduce((acc, d) => acc + toNumber(d?.count), 0);
   return (
     <>
-      <h2 className="text-xl font-bold">
-        From {total} listings currently in Humboldt County
-      </h2>
+      <div className="flex flex-col items-center">
+        <h2 className="text-xl font-bold">
+          From {total} listings currently in Humboldt County
+        </h2>
+        <span className="text-muted-foreground">
+          For more cool charts, check out{" "}
+          <a href="/analytics" className="text-primary">
+            analytics
+          </a>
+        </span>
+      </div>
       <BedroomAveragesChart
         data={
           data?.map((d) => ({ ...d, bedrooms: d.bedrooms + " bd" })) ?? null

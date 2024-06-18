@@ -26,61 +26,63 @@ export default function RootLayout({
       lang="en"
       className={`${GeistSans.variable} ${GeistMono.variable} dark box-border flex flex-col items-center justify-center transition-colors`}
     >
-      <body className="flex w-[95%] min-w-0 flex-col items-center justify-center lg:w-5/6">
-        <header className="flex w-full items-center justify-center bg-background/50 pt-5">
-          {/* <Image
+      <body className="flex w-full justify-center">
+        <div className="flex h-full w-[95%] min-w-0 flex-col items-center justify-center lg:w-5/6">
+          <header className="flex w-full items-center justify-center bg-background/50 pt-5">
+            {/* <Image
 						src={"/hcr-full-logo.svg"}
 						alt='HCR'
 						width={120}
 						height={0 This doesn't actually matter}
-					/> */}
-          <Link
-            href={"/"}
-            className="h-24 w-48 text-foreground transition-all hover:animate-rotate-x hover:cursor-pointer hover:text-primary"
-          >
-            <Logo className="h-full w-full" />
-          </Link>
-          {/* <h1 className='text-4xl font-bold tracking-wider w-full'>HCR</h1> */}
-          <nav className="hidden w-full items-center justify-center gap-2 md:flex">
+            /> */}
             <Link
-              href={"/listings"}
-              className={buttonVariants({ variant: "link" })}
+              href={"/"}
+              className="h-24 w-48 text-foreground transition-all hover:animate-rotate-x hover:cursor-pointer hover:text-primary"
             >
-              Listings
+              <Logo className="h-full w-full" />
             </Link>
-            <Link
-              href={"/favorites"}
-              className={buttonVariants({ variant: "link" })}
-            >
-              Favorites
-            </Link>
-            <Link
-              href={"/analytics"}
-              className={buttonVariants({ variant: "link" })}
-            >
-              Analytics
-            </Link>
-            <Link
-              href={"/about"}
-              className={buttonVariants({ variant: "link" })}
-            >
-              About
-            </Link>
-          </nav>
-          <div className="hidden w-full items-center justify-end gap-1 md:flex">
-            <ThemeToggle />
-            <Button className="hover:animate-pulse" variant={"ghost"}>
-              login
-            </Button>
-            <Button className="hover:animate-wiggle">sign up</Button>
-          </div>
-          <div className="flex w-full items-center justify-end md:hidden">
-            <MobileSideBar />
-          </div>
-        </header>
-        <hr className="w-full" />
+            {/* <h1 className='text-4xl font-bold tracking-wider w-full'>HCR</h1> */}
+            <nav className="hidden w-full items-center justify-center gap-2 md:flex">
+              <Link
+                href={"/listings"}
+                className={buttonVariants({ variant: "link" })}
+              >
+                Listings
+              </Link>
+              <Link
+                href={"/favorites"}
+                className={buttonVariants({ variant: "link" })}
+              >
+                Favorites
+              </Link>
+              <Link
+                href={"/analytics"}
+                className={buttonVariants({ variant: "link" })}
+              >
+                Analytics
+              </Link>
+              <Link
+                href={"/about"}
+                className={buttonVariants({ variant: "link" })}
+              >
+                About
+              </Link>
+            </nav>
+            <div className="hidden w-full items-center justify-end gap-1 md:flex">
+              <ThemeToggle />
+              <Button className="hover:animate-pulse" variant={"ghost"}>
+                login
+              </Button>
+              <Button className="hover:animate-wiggle">sign up</Button>
+            </div>
+            <div className="flex w-full items-center justify-end md:hidden">
+              <MobileSideBar />
+            </div>
+          </header>
+          <hr className="w-full" />
 
-        {children}
+          {children}
+        </div>
       </body>
     </html>
   );

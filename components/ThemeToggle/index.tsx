@@ -29,21 +29,23 @@ export const ThemeToggle = () => {
   }, []);
 
   useEffect(() => {
-    const root = document.getElementsByTagName("html")[0];
+    const root = document.querySelector(":root");
+    if (!root) return;
     const systemIsDark =
       window.matchMedia &&
       window.matchMedia("(prefers-color-scheme: dark)").matches;
     const isSystem = themeState === "system";
-    const choseSystemDark = isSystem && systemIsDark;
-    const choseSystemLight = isSystem && !systemIsDark;
-    if (themeState === "dark" || choseSystemDark) {
+    // const choseSystemDark = isSystem && systemIsDark;
+    // const choseSystemLight = isSystem && !systemIsDark;
+    if (themeState === "dark" || (isSystem && systemIsDark)) {
       root.classList.add("dark");
       return;
     }
-    if (themeState === "light" || !choseSystemLight) {
+    if (themeState === "light" || (isSystem && !systemIsDark)) {
       root.classList.remove("dark");
       return;
     }
+    root.classList.add("dark");
   }, [themeState]);
   return (
     <Select

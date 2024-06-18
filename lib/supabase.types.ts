@@ -17,6 +17,8 @@ export type Database = {
           address_country: string | null
           address_latitude: string | null
           address_longitude: string | null
+          address_state: string | null
+          admin_hidden: boolean
           available_date: string | null
           bathrooms: number | null
           bedrooms: number | null
@@ -44,6 +46,8 @@ export type Database = {
           address_country?: string | null
           address_latitude?: string | null
           address_longitude?: string | null
+          address_state?: string | null
+          admin_hidden?: boolean
           available_date?: string | null
           bathrooms?: number | null
           bedrooms?: number | null
@@ -71,6 +75,8 @@ export type Database = {
           address_country?: string | null
           address_latitude?: string | null
           address_longitude?: string | null
+          address_state?: string | null
+          admin_hidden?: boolean
           available_date?: string | null
           bathrooms?: number | null
           bedrooms?: number | null
@@ -177,6 +183,18 @@ export type Database = {
           max_market_rent: number | null
           median_market_rent: number | null
           min_market_rent: number | null
+        }
+        Relationships: []
+      }
+      distinct_bathrooms: {
+        Row: {
+          bathrooms: number | null
+        }
+        Relationships: []
+      }
+      distinct_bedrooms: {
+        Row: {
+          bedrooms: number | null
         }
         Relationships: []
       }

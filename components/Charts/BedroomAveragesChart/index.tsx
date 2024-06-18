@@ -32,7 +32,7 @@ export const BedroomAveragesChart = ({
     ...data.map((d) => toNumber(d?.median_market_rent)),
   );
   const maxRent =
-    Math.round((Math.max(maxAvg, maxMedian) + 2000) / 1000) * 1000;
+    Math.round((Math.max(maxAvg, maxMedian) + 1000) / 1000) * 1000;
   const total = data?.reduce((acc, d) => acc + toNumber(d?.count), 0);
   return (
     <ResponsiveContainer width={"100%"} height={250}>
