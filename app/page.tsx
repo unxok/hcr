@@ -31,8 +31,8 @@ export default async function Page() {
           <Link
             href={"/listings"}
             className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "animate-fade-up bg-secondary/30 backdrop-blur-sm animate-delay-700",
+              buttonVariants({ variant: "default" }),
+              "animate-fade-up backdrop-blur-sm animate-delay-700",
             )}
           >
             view listings
@@ -249,15 +249,15 @@ export default async function Page() {
 const BedroomAverages = async () => {
   const { data } = await supabase
     .from("current_stats_by_bedrooms")
-    .select("bedrooms, avg_market_rent, median_market_rent, count")
-    .gte("bedrooms", 0);
+    .select("bedrooms, avg_market_rent, median_market_rent, count");
 
-  const total = data?.reduce((acc, d) => acc + toNumber(d?.count), 0);
+  const count = data?.reduce((acc, { count }) => acc + toNumber(count), 0);
+
   return (
     <>
       <div className="flex flex-col items-center">
         <h2 className="text-xl font-bold">
-          From {total} listings currently in Humboldt County
+          From {count} listings currently in Humboldt County
         </h2>
         <span className="text-muted-foreground">
           For more cool charts, check out{" "}

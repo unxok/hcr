@@ -41,12 +41,22 @@ export const toNumber = (
   val: unknown,
   defaultNumber?: number,
   considerInvalid?: number,
+  min?: number,
+  max?: number,
 ) => {
   const num = Number(val);
-  const isInvalid = val === considerInvalid || num === considerInvalid;
+  const numMin = Number(min);
+  const numMax = Number(max);
+  const belowMin = numMin > 0 ? num < numMin : false;
+  const belowMax = numMax > 0 ? num < numMax : false;
   const considerInvalidIsValid =
     considerInvalid !== undefined && considerInvalid !== null;
-  if (isInvalid && considerInvalidIsValid) {
+  const isInvalid =
+    (considerInvalidIsValid && val === considerInvalid) ||
+    (considerInvalidIsValid && num === considerInvalid) ||
+    belowMin ||
+    belowMax;
+  if (isInvalid) {
     return defaultNumber ?? 0;
   }
   if (Number.isNaN(num)) {
@@ -97,7 +107,13 @@ export const createQueryParamsString = (
       ? searchParams.toString()
       : searchParams;
   const params = new URLSearchParams(arg);
-  Object.keys(obj).forEach((key) => params.set(key, obj[key]));
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] === null) {
+      params.delete(key);
+      return;
+    }
+    params.set(key, obj[key]);
+  });
   return params.toString();
 };
 

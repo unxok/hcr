@@ -36,7 +36,7 @@ import {
   ListingSearchCardFallback,
   TFormSchema,
 } from "./ListingSearchCard";
-import { Suspense } from "react";
+import { ReactNode, Suspense } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -48,6 +48,9 @@ import {
 } from "@/components/ui/pagination";
 import { PageSelector } from "./PageSelector";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageSizeInput } from "./PageSizeInput";
+import { defaultPageSize } from "@/lib/constants";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "HCR | Listings!",
@@ -108,13 +111,27 @@ const SearchCardWrapper = async () => {
   );
 };
 
+const getDateFromSearchParams = (
+  searchParams: Record<string, string | string[] | undefined>,
+  key: string,
+) => {
+  const val = searchParams["availableFrom"];
+  const pre = !val ? null : Array.isArray(val) ? val[0] : val;
+  return pre ? new Date(pre).toISOString() : null;
+};
+
 const ListingList = async ({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) => {
   const possiblePageNumber = Math.round(toNumber(searchParams.pageNumber, 1));
-  const possiblePageSize = Math.round(toNumber(searchParams.pageSize, 25));
+  const possiblePageSize = Math.round(
+    toNumber(searchParams.pageSize, defaultPageSize),
+  );
+  const availableFrom = getDateFromSearchParams(searchParams, "availableFrom");
+  const availableTo = getDateFromSearchParams(searchParams, "availableTo");
+
   const sp: TFormSchema & { pageSize: number; pageNumber: number } = {
     rentMin: toNumber(searchParams.rentMin),
     rentMax: toNumber(searchParams.rentMax),
@@ -136,8 +153,10 @@ const ListingList = async ({
         : (searchParams.cities as string).split(","),
     sqFtMin: toNumber(searchParams.sqFtMin),
     sqFtMax: toNumber(searchParams.sqFtMax),
-    pageSize: possiblePageSize > 0 ? possiblePageSize : 25,
+    pageSize: possiblePageSize > 0 ? possiblePageSize : defaultPageSize,
     pageNumber: possiblePageNumber > 1 ? possiblePageNumber : 1,
+    availableFrom: availableFrom,
+    availableTo: availableTo,
   };
 
   // console.log("sp: ", sp);
@@ -156,9 +175,20 @@ const ListingList = async ({
     sqFtMax,
     pageSize,
     pageNumber,
+    availableFrom: availableFromDate,
+    availableTo: availableToDate,
   } = sp;
 
   const [start, end] = [pageSize * (pageNumber - 1), pageSize * pageNumber - 1];
+
+  // console.log("start: ", start, " end: ", end);
+
+  // let listingsQuery1 = supabase
+  //   .from("listings")
+  //   .select("*, property_managements ( * )", { count: "exact" })
+  //   .gte("market_rent", rentMin)
+  //   .gte("deposit", depositMin)
+  //   .is("unlisted_at", null);
 
   let listingsQuery = supabase
     .from("listings")
@@ -166,33 +196,53 @@ const ListingList = async ({
     .gte("market_rent", rentMin)
     .gte("deposit", depositMin)
     .gte("square_feet", sqFtMin)
-    .range(start, end);
+    .range(start, end)
+    .is("unlisted_at", null);
 
-  if (rentMax > 0) {
+  // listingsQuery =
+  //   (rentMax && rentMax > 0) ? listingsQuery.lte("market_rent", rentMax) : listingsQuery;
+  // listingsQuery =
+  //   (depositMax && depositMax > 0) ? listingsQuery.lte("market_rent", rentMax) : listingsQuery;
+  // listingsQuery =
+  //   bedrooms && bedrooms?.length > 0
+  //     ? listingsQuery.in("bedrooms", bedrooms)
+  //     : listingsQuery;
+  // listingsQuery =
+  //   bathrooms && bathrooms?.length > 0
+  //     ? listingsQuery.in("bathrooms", bathrooms)
+  //     : listingsQuery;
+  // listingsQuery =
+  //   (sqFtMax && sqFtMax > 0) ? listingsQuery.lte("square_feet", sqFtMax) : listingsQuery;
+  // listingsQuery = dogs ? listingsQuery.eq("dogs", dogs) : listingsQuery;
+  // listingsQuery = cats ? listingsQuery.eq("cats", cats) : listingsQuery;
+  // listingsQuery = selectedCities
+  //   ? listingsQuery.in("address_city", selectedCities)
+  //   : listingsQuery;
+
+  if (rentMax && rentMax > 0)
     listingsQuery = listingsQuery.lte("market_rent", rentMax);
-  }
-  if (depositMax > 0) {
+  if (depositMax && depositMax > 0)
     listingsQuery = listingsQuery.lte("deposit", depositMax);
-  }
-  if (bedrooms && bedrooms?.length > 0) {
+  if (bedrooms && bedrooms?.length > 0)
     listingsQuery = listingsQuery.in("bedrooms", bedrooms);
-  }
-  if (bathrooms && bathrooms?.length > 0) {
+  if (bathrooms && bathrooms?.length > 0)
     listingsQuery = listingsQuery.in("bathrooms", bathrooms);
-  }
-  if (sqFtMax > 0) {
+  if (sqFtMax && sqFtMax > 0)
     listingsQuery = listingsQuery.lte("square_feet", sqFtMax);
-  }
-  if (dogs) {
-    listingsQuery = listingsQuery.eq("dogs", dogs);
-  }
-  if (cats) {
-    listingsQuery = listingsQuery.eq("cats", cats);
-  }
-
-  if (selectedCities) {
+  if (dogs) listingsQuery = listingsQuery.eq("dogs", dogs);
+  if (cats) listingsQuery = listingsQuery.eq("cats", cats);
+  if (selectedCities)
     listingsQuery = listingsQuery.in("address_city", selectedCities);
-  }
+  if (availableFromDate)
+    listingsQuery.gte(
+      "available_date",
+      new Date(availableFromDate).toISOString(),
+    );
+  if (availableToDate)
+    listingsQuery.lte(
+      "available_date",
+      new Date(availableToDate).toISOString(),
+    );
 
   const { data: listings, count: preCount } = await listingsQuery;
   const count = toNumber(preCount);
@@ -203,79 +253,258 @@ const ListingList = async ({
   const nextPage = pageNumber < totalPages ? pageNumber + 1 : pageNumber;
   const prevPage = pageNumber > 1 ? pageNumber - 1 : pageNumber;
 
+  const toolbarProps = {
+    totalPages,
+    nextPage,
+    prevPage,
+    start,
+    end,
+    count,
+    pageNumber,
+    searchParams,
+    pathName,
+  };
+
+  const hasFilters =
+    Object.keys(sp).filter((k) => !!sp[k as keyof typeof sp]).length > 2;
+
   return (
     <>
-      <div className="flex w-full items-center justify-between gap-2">
-        <div className="w-fit animate-fade-right text-muted-foreground">
-          Showing {start + 1} - {end + 1 < count ? end + 1 : count} results of{" "}
-          {count}
-        </div>
-        <Pagination className="animate-fade-left">
-          <PaginationContent className="">
-            <PaginationItem>
-              <PaginationFirst
-                href={
-                  pathName +
-                  createQueryParamsString(searchParams, {
-                    pageNumber: 1,
-                  })
-                }
-                label={false}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationPrevious
-                href={
-                  pathName +
-                  createQueryParamsString(searchParams, {
-                    pageNumber: prevPage,
-                  })
-                }
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PageSelector
-                pathName={pathName}
-                searchParams={searchParams}
-                pageNumber={pageNumber}
-                totalPages={totalPages}
-              />
-            </PaginationItem>
-            <PaginationItem className="pl-2">
-              of {totalPages} pages
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                href={
-                  pathName +
-                  createQueryParamsString(searchParams, {
-                    pageNumber: nextPage,
-                  })
-                }
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLast
-                href={
-                  pathName +
-                  createQueryParamsString(searchParams, {
-                    pageNumber: totalPages,
-                  })
-                }
-                label={false}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
-      <div className="flex w-full animate-fade-up flex-wrap justify-around gap-4 rounded-md py-5">
+      <ListingsToolbar {...toolbarProps} />
+      {hasFilters && <ListingsFilters searchParams={sp} pathName={pathName} />}
+
+      <div className="flex w-full animate-fade-up flex-wrap justify-around gap-4 rounded-md">
         {(listings as ListingRow[])?.map((l) => (
           <Listing key={l.listable_uid} {...l} />
         ))}
       </div>
+      <ListingsToolbar {...toolbarProps} />
     </>
   );
 };
+
+const BadgeLink = ({ href, label }: { href: string; label: ReactNode }) => (
+  <Link href={href}>
+    <Badge className="hover:bg-primary/80">{label}</Badge>
+  </Link>
+);
+
+const ListingsFilters = ({
+  searchParams,
+  pathName,
+}: {
+  searchParams: TFormSchema & { pageSize: number; pageNumber: number };
+  pathName: string;
+}) => {
+  const {
+    rentMin,
+    rentMax,
+    depositMin,
+    depositMax,
+    sqFtMin,
+    sqFtMax,
+    bedrooms,
+    bathrooms,
+    cats,
+    dogs,
+    cities: selectedCities,
+  } = searchParams;
+  return (
+    <div className="flex w-full flex-wrap items-center justify-start gap-1">
+      <span>Filters </span>
+      {!!rentMin && (
+        <BadgeLink
+          label={`Min rent $${rentMin?.toLocaleString()}`}
+          href={
+            pathName + createQueryParamsString(searchParams, { rentMin: null })
+          }
+        />
+      )}
+      {!!rentMax && (
+        <BadgeLink
+          label={`Max rent $${rentMax?.toLocaleString()}`}
+          href={
+            pathName + createQueryParamsString(searchParams, { rentMax: null })
+          }
+        />
+      )}
+      {!!depositMin && (
+        <BadgeLink
+          label={`Min deposit $${depositMin?.toLocaleString()}`}
+          href={
+            pathName +
+            createQueryParamsString(searchParams, { depositMin: null })
+          }
+        />
+      )}
+      {!!depositMax && (
+        <BadgeLink
+          label={`Max deposit $${depositMax?.toLocaleString()}`}
+          href={
+            pathName +
+            createQueryParamsString(searchParams, { depositMax: null })
+          }
+        />
+      )}
+      {!!sqFtMin && (
+        <BadgeLink
+          label={`Min square ft ${sqFtMin?.toLocaleString()}`}
+          href={
+            pathName + createQueryParamsString(searchParams, { sqFtMin: null })
+          }
+        />
+      )}
+      {!!sqFtMax && (
+        <BadgeLink
+          label={`Max square ft ${sqFtMax?.toLocaleString()}`}
+          href={
+            pathName + createQueryParamsString(searchParams, { sqFtMax: null })
+          }
+        />
+      )}
+      {!!bedrooms &&
+        bedrooms.map((n) => (
+          <BadgeLink
+            key={n + "-bed-filter-chip"}
+            label={n + " bed"}
+            href={
+              pathName +
+              createQueryParamsString(searchParams, {
+                bedrooms: bedrooms.filter((b) => b !== n),
+              })
+            }
+          />
+        ))}
+      {!!bathrooms &&
+        bathrooms.map((n) => (
+          <BadgeLink
+            key={n + "-bath-filter-chip"}
+            label={n + " bath"}
+            href={
+              pathName +
+              createQueryParamsString(searchParams, {
+                bathrooms: bathrooms.filter((b) => b !== n),
+              })
+            }
+          />
+        ))}
+      {!!cats && (
+        <BadgeLink
+          label={`Cats required`}
+          href={
+            pathName + createQueryParamsString(searchParams, { cats: null })
+          }
+        />
+      )}
+      {!!dogs && (
+        <BadgeLink
+          label={`Dogs required`}
+          href={
+            pathName + createQueryParamsString(searchParams, { dogs: null })
+          }
+        />
+      )}
+      {!!selectedCities &&
+        selectedCities.map((n) => (
+          <BadgeLink
+            key={n + "-city-filter-chip"}
+            label={n}
+            href={
+              pathName +
+              createQueryParamsString(searchParams, {
+                cities: selectedCities.filter((b) => b !== n),
+              })
+            }
+          />
+        ))}
+    </div>
+  );
+};
+
+const ListingsToolbar = ({
+  totalPages,
+  nextPage,
+  prevPage,
+  start,
+  end,
+  count,
+  pageNumber,
+  searchParams,
+  pathName,
+}: {
+  totalPages: number;
+  nextPage: number;
+  prevPage: number;
+  start: number;
+  end: number;
+  count: number;
+  pageNumber: number;
+  searchParams: Record<string, string | string[] | undefined>;
+  pathName: string;
+}) => (
+  <div className="flex w-full items-center justify-between gap-2">
+    <div className="w-fit animate-fade-right text-muted-foreground">
+      Showing {count < start + 1 ? count : start + 1} -{" "}
+      {end + 1 < count ? end + 1 : count} results of {count}
+    </div>
+    <PageSizeInput searchParams={searchParams} />
+    <Pagination className="animate-fade-left">
+      <PaginationContent className="">
+        <PaginationItem>
+          <PaginationFirst
+            href={
+              pathName +
+              createQueryParamsString(searchParams, {
+                pageNumber: 1,
+              })
+            }
+            label={false}
+          />
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationPrevious
+            href={
+              pathName +
+              createQueryParamsString(searchParams, {
+                pageNumber: prevPage,
+              })
+            }
+          />
+        </PaginationItem>
+        <PaginationItem>
+          <PageSelector
+            pathName={pathName}
+            searchParams={searchParams}
+            pageNumber={pageNumber}
+            totalPages={totalPages}
+          />
+        </PaginationItem>
+        <PaginationItem className="pl-2">of {totalPages} pages</PaginationItem>
+        <PaginationItem>
+          <PaginationNext
+            href={
+              pathName +
+              createQueryParamsString(searchParams, {
+                pageNumber: nextPage,
+              })
+            }
+          />
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLast
+            href={
+              pathName +
+              createQueryParamsString(searchParams, {
+                pageNumber: totalPages,
+              })
+            }
+            label={false}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  </div>
+);
 
 const ListingListFallback = () => (
   <>
@@ -448,7 +677,7 @@ const Listing = ({
       </CardContent>
       <CardFooter className="flex flex-col items-start justify-center gap-2 py-2">
         <div className="flex items-center gap-4 text-2xl font-bold tracking-wide">
-          <span>${market_rent?.toLocaleString()}</span>
+          <span className="text-primary">${market_rent?.toLocaleString()}</span>
           <div className="flex items-center justify-center gap-1 text-base">
             {bedrooms ?? 0}
             <Bed />
@@ -456,24 +685,26 @@ const Listing = ({
             {bathrooms ?? 0} <Bath />
           </div>
         </div>
-        <div className="text-sm text-muted-foreground">
-          {availableNow ? "Available now since " : "Will be available "}{" "}
-          {available}
-        </div>
         <div className="flex flex-wrap items-start justify-start gap-1">
           {/* <Badge>Rent: ${market_rent?.toLocaleString()}</Badge> */}
-          <Badge>Deposit: ${deposit?.toLocaleString()}</Badge>
+          <Badge variant={"secondary"}>
+            Deposit: ${deposit?.toLocaleString()}
+          </Badge>
           <Badge variant={dogs ? "default" : "destructive"}>
             Dogs&nbsp;{dogs ? <CheckCircledIcon /> : <CrossCircledIcon />}
           </Badge>
           <Badge variant={cats ? "default" : "destructive"}>
             Cats&nbsp;{cats ? <CheckCircledIcon /> : <CrossCircledIcon />}
           </Badge>
-          <Badge variant={square_feet ? "default" : "destructive"}>
+          <Badge variant={square_feet ? "secondary" : "destructive"}>
             {square_feet ? square_feet : "?"}&nbsp;ft&nbsp;<sup>2</sup>
           </Badge>
           {/* <Badge>{bedrooms ?? 0} Bed</Badge>
 					<Badge>{bathrooms ?? 0} Bath</Badge> */}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {availableNow ? "Available now since " : "Will be available "}{" "}
+          {available}
         </div>
       </CardFooter>
     </Card>

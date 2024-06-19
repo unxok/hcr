@@ -1,12 +1,13 @@
 "use client";
 
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectTrigger,
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { createQueryParamsString, createRange } from "@/lib/utils";
+import { createQueryParamsString, createRange, toNumber } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
 export const PageSelector = ({
@@ -36,7 +37,7 @@ export const PageSelector = ({
         {pageNumber}
       </SelectTrigger>
       <SelectContent>
-        {createRange(1, totalPages + 1).map((v) => (
+        {createRange(1, totalPages).map((v) => (
           <SelectItem key={v + "-pagination-item"} value={v.toString()}>
             {v}
           </SelectItem>
