@@ -26,6 +26,7 @@ import { Bath, Bed, LoaderCircle, MapPin } from "lucide-react";
 import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
 import {
+  assert,
   cn,
   createQueryParamsString,
   createRange,
@@ -49,8 +50,16 @@ import {
 import { PageSelector } from "./PageSelector";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSizeInput } from "./PageSizeInput";
-import { defaultPageSize } from "@/lib/constants";
 import Link from "next/link";
+import { Select } from "@/components/ui/select";
+import { ListingsSorter } from "./ListingsSorter";
+import {
+  SearchParamKey,
+  SearchParamObj,
+  SortOption,
+  defaultPageSize,
+  sortOptionsArr,
+} from "./constants";
 
 export const metadata: Metadata = {
   title: "HCR | Listings!",
@@ -66,7 +75,7 @@ type ListingRow = Database["public"]["Tables"]["listings"]["Row"] & {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: SearchParamObj;
 }) {
   return (
     <div className="flex size-full flex-col items-center justify-start gap-5 py-5">
@@ -112,8 +121,8 @@ const SearchCardWrapper = async () => {
 };
 
 const getDateFromSearchParams = (
-  searchParams: Record<string, string | string[] | undefined>,
-  key: string,
+  searchParams: SearchParamObj,
+  key: SearchParamKey,
 ) => {
   const val = searchParams["availableFrom"];
   const pre = !val ? null : Array.isArray(val) ? val[0] : val;
@@ -123,7 +132,7 @@ const getDateFromSearchParams = (
 const ListingList = async ({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: SearchParamObj;
 }) => {
   const possiblePageNumber = Math.round(toNumber(searchParams.pageNumber, 1));
   const possiblePageSize = Math.round(
@@ -131,8 +140,13 @@ const ListingList = async ({
   );
   const availableFrom = getDateFromSearchParams(searchParams, "availableFrom");
   const availableTo = getDateFromSearchParams(searchParams, "availableTo");
+  // I don't love this but it works and should be safe
+  const preSort = sortOptionsArr.includes(searchParams["sort"] as SortOption)
+    ? searchParams["sort"]
+    : sortOptionsArr[0];
+  const sort = assert<SortOption>(preSort);
 
-  const sp: TFormSchema & { pageSize: number; pageNumber: number } = {
+  const sp = {
     rentMin: toNumber(searchParams.rentMin),
     rentMax: toNumber(searchParams.rentMax),
     depositMin: toNumber(searchParams.depositMin),
@@ -155,8 +169,10 @@ const ListingList = async ({
     sqFtMax: toNumber(searchParams.sqFtMax),
     pageSize: possiblePageSize > 0 ? possiblePageSize : defaultPageSize,
     pageNumber: possiblePageNumber > 1 ? possiblePageNumber : 1,
-    availableFrom: availableFrom,
-    availableTo: availableTo,
+    availableFrom,
+    availableTo,
+    sort,
+    asc: searchParams["asc"] === "true",
   };
 
   // console.log("sp: ", sp);
@@ -177,6 +193,8 @@ const ListingList = async ({
     pageNumber,
     availableFrom: availableFromDate,
     availableTo: availableToDate,
+    sort: sortOption,
+    asc,
   } = sp;
 
   const [start, end] = [pageSize * (pageNumber - 1), pageSize * pageNumber - 1];
@@ -197,7 +215,8 @@ const ListingList = async ({
     .gte("deposit", depositMin)
     .gte("square_feet", sqFtMin)
     .range(start, end)
-    .is("unlisted_at", null);
+    .is("unlisted_at", null)
+    .order(sortOption, { ascending: asc });
 
   // listingsQuery =
   //   (rentMax && rentMax > 0) ? listingsQuery.lte("market_rent", rentMax) : listingsQuery;
@@ -243,6 +262,12 @@ const ListingList = async ({
       "available_date",
       new Date(availableToDate).toISOString(),
     );
+  // Sort options
+  if (sort === "market_rent") {
+    listingsQuery.order("market_rent", { ascending: true });
+  }
+
+  ///////////////
 
   const { data: listings, count: preCount } = await listingsQuery;
   const count = toNumber(preCount);
@@ -261,7 +286,7 @@ const ListingList = async ({
     end,
     count,
     pageNumber,
-    searchParams,
+    searchParams: sp,
     pathName,
   };
 
@@ -271,6 +296,7 @@ const ListingList = async ({
   return (
     <>
       <ListingsToolbar {...toolbarProps} />
+      <ListingsSorter />
       {hasFilters && <ListingsFilters searchParams={sp} pathName={pathName} />}
 
       <div className="flex w-full animate-fade-up flex-wrap justify-around gap-4 rounded-md">
@@ -293,7 +319,7 @@ const ListingsFilters = ({
   searchParams,
   pathName,
 }: {
-  searchParams: TFormSchema & { pageSize: number; pageNumber: number };
+  searchParams: Record<string, any>;
   pathName: string;
 }) => {
   const {
@@ -363,6 +389,7 @@ const ListingsFilters = ({
         />
       )}
       {!!bedrooms &&
+        Array.isArray(bedrooms) &&
         bedrooms.map((n) => (
           <BadgeLink
             key={n + "-bed-filter-chip"}
@@ -376,6 +403,7 @@ const ListingsFilters = ({
           />
         ))}
       {!!bathrooms &&
+        Array.isArray(bathrooms) &&
         bathrooms.map((n) => (
           <BadgeLink
             key={n + "-bath-filter-chip"}
@@ -405,6 +433,7 @@ const ListingsFilters = ({
         />
       )}
       {!!selectedCities &&
+        Array.isArray(selectedCities) &&
         selectedCities.map((n) => (
           <BadgeLink
             key={n + "-city-filter-chip"}
@@ -439,7 +468,7 @@ const ListingsToolbar = ({
   end: number;
   count: number;
   pageNumber: number;
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Record<string, any>;
   pathName: string;
 }) => (
   <div className="flex w-full items-center justify-between gap-2">

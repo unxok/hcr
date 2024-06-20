@@ -37,9 +37,14 @@ import {
   useCallback,
   useState,
 } from "react";
-import { z } from "zod";
+import { ZodSchema, z } from "zod";
+import { SearchParamKey, searchParamsKeys } from "./constants";
 
-const FormSchema = z.object({
+type FormSchemaObjectKeys = Exclude<
+  (typeof searchParamsKeys)[number],
+  "pageSize" | "sort" | "asc"
+>;
+const FormSchemaObject: Record<FormSchemaObjectKeys, ZodSchema> = {
   rentMin: z.number().min(0).nullable(),
   rentMax: z.number().min(0).nullable(),
   depositMin: z.number().min(0).nullable(),
@@ -54,7 +59,9 @@ const FormSchema = z.object({
   pageNumber: z.number().min(0),
   availableFrom: z.string().nullable(),
   availableTo: z.string().nullable(),
-});
+};
+
+const FormSchema = z.object(FormSchemaObject);
 
 export type TFormSchema = z.infer<typeof FormSchema>;
 
