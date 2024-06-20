@@ -29,16 +29,37 @@ import { assert, cn, createQueryParamsString, toNumber } from "@/lib/utils";
 import { PopoverClose } from "@radix-ui/react-popover";
 import { CalendarIcon } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import {
+  ReadonlyURLSearchParams,
+  usePathname,
+  useSearchParams,
+} from "next/navigation";
 import {
   ChangeEvent,
   Dispatch,
   SetStateAction,
+  forwardRef,
   useCallback,
+  useEffect,
+  useRef,
   useState,
 } from "react";
 import { ZodSchema, z } from "zod";
 import { SearchParamKey, searchParamsKeys } from "./constants";
+import { AnimatePresence, motion } from "framer-motion";
+import * as Portal from "@radix-ui/react-portal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+export const dynamic = "force-dynamic";
 
 type FormSchemaObjectKeys = Exclude<
   (typeof searchParamsKeys)[number],
@@ -59,6 +80,7 @@ const FormSchemaObject: Record<FormSchemaObjectKeys, ZodSchema> = {
   pageNumber: z.number().min(0),
   availableFrom: z.string().nullable(),
   availableTo: z.string().nullable(),
+  showFilters: z.boolean(),
 };
 
 const FormSchema = z.object(FormSchemaObject);
@@ -80,8 +102,18 @@ const defaultFormSchema: TFormSchema = {
   pageNumber: 0,
   availableFrom: null,
   availableTo: null,
+  showFilters: false,
 };
 
+/**
+ * # TODO
+ * There's a bug that happens when a filter chip is clicked from `<ListingsFilters />`
+ * 1. Clicking the chip navigates to the same page but with modified search params
+ * 2. For some reason, the form state is persisted across navigation
+ *  - This is evident by the `useEffect` call in this component
+ * 3. This causes the form state to be out of sync with the search params despite this being 'initial page load'
+ * 4. Since the `useEffect` shows this desync, I need to extract the inital code that runs to initialize the form state from search params as a function that I call on mount and whenever search params change
+ */
 export const ListingSearchCard = ({
   cities,
   bedrooms,
@@ -91,18 +123,30 @@ export const ListingSearchCard = ({
   bedrooms: number[];
   bathrooms: number[];
 }) => {
-  "use client";
-
   const pathName = usePathname();
   const sp = useSearchParams();
+  const SHOW_FILTERS: SearchParamKey = "showFilters";
+  const [isFiltersShown, setFiltersShown] = useState(false);
+  // const isFiltersShown = !!sp.get(SHOW_FILTERS);
+  // const href =
+  //   pathName +
+  //   "?" +
+  //   createQueryParamsString(sp, { [SHOW_FILTERS]: !isFiltersShown || null });
 
   // const createQueryStringCallback = useCallback(
   //   (obj: Record<string, any>) => createQueryParamsString(sp, obj),
   //   [sp],
   // );
-  const spCities = sp.getAll("cities");
-  const spBedrooms = sp.getAll("bedrooms").map((s) => toNumber(s));
-  const spBathrooms = sp.getAll("bathrooms").map((s) => toNumber(s));
+  const spCities = (sp.get("cities") ?? "").split(",").filter((s) => !!s);
+  const spBedrooms = (sp.get("bedrooms") ?? "")
+    .split(",")
+    .map((s) => Number(s || NaN))
+    .filter((n) => !Number.isNaN(n));
+  const spBathrooms = (sp.get("bathrooms") ?? "")
+    .split(",")
+    .map((s) => Number(s || NaN))
+    .filter((n) => !Number.isNaN(n));
+
   const spForm: TFormSchema = {
     rentMin: toNumber(sp.get("rentMin")) || null,
     rentMax: toNumber(sp.get("rentMax")) || null,
@@ -118,14 +162,18 @@ export const ListingSearchCard = ({
     pageNumber: 0,
     availableFrom: sp.get("availableFrom") || null,
     availableTo: sp.get("availableTo") || null,
+    showFilters: false,
   };
   const pS = Number(sp.get("pageSize"));
   const pageSize = Number.isNaN(pS) ? null : pS;
   const parsed = FormSchema.safeParse({ ...defaultFormSchema, ...spForm });
   const defaultForm = parsed.success ? parsed.data : defaultFormSchema;
-
-  const [isFiltersShown, setFiltersShown] = useState(false);
   const [form, setForm] = useState<TFormSchema>(defaultForm);
+
+  // useEffect(() => {
+  //   console.log("form: ", form);
+  //   console.log("sp: ", Array.from(sp));
+  // }, [sp, form]);
 
   const updateForm = <T extends keyof typeof form>(
     key: T,
@@ -182,53 +230,83 @@ export const ListingSearchCard = ({
   };
 
   return (
-    <Card className="w-full animate-fade-right bg-background">
-      <CardHeader>
-        <CardTitle>Rental listings</CardTitle>
-        <CardDescription>
-          last updated <span>2024-06-15 08:30 AM</span>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Collapsible open={isFiltersShown} onOpenChange={setFiltersShown}>
+    <>
+      <Dialog open={isFiltersShown} onOpenChange={setFiltersShown}>
+        <DialogTrigger
+          className={buttonVariants({ variant: "outline" })}
+          onClick={() => setFiltersShown((b) => !b)}
+        >
+          edit
+        </DialogTrigger>
+        {/* <div className="flex w-full justify-start">
+          <Link href={href}>
           <CollapsibleTrigger
-            className={buttonVariants({ variant: "outline" })}
+          className={buttonVariants({ variant: "outline" })}
           >
-            {isFiltersShown ? "Hide" : "Edit"} search filters
+          edit filters
           </CollapsibleTrigger>
-          <CollapsibleContent className="flex flex-col gap-2 py-3">
-            <MonthlyRent {...commonProps} />
-            <SecurityDeposit {...commonProps} />
-            <SquareFeet {...commonProps} />
-            <Bedrooms {...commonProps} bedrooms={bedrooms} />
-            <Bathrooms {...commonProps} bathrooms={bathrooms} />
-            {/* TODO dates don't work probably, issue is likely in <ListingsList /> */}
-            {/* <Available {...commonProps} /> */}
-            <Pets {...commonProps} />
-            <Cities {...commonProps} cities={cities} />
-          </CollapsibleContent>
-        </Collapsible>
-      </CardContent>
-      <CardFooter className="flex gap-2">
-        <Link
-          className={cn(buttonVariants({ variant: "default" }), "rounded-xl")}
-          href={pathName + "?" + createQueryParamsString(sp, filterForm(form))}
-        >
-          apply
-        </Link>
-        <Link
-          className={cn(buttonVariants({ variant: "ghost" }), "rounded-xl")}
-          href={
-            pathName +
-            "?" +
-            createQueryParamsString({}, pageSize ? { pageSize } : {})
-          }
-          onClick={() => setForm(defaultFormSchema)}
-        >
-          reset
-        </Link>
-      </CardFooter>
-    </Card>
+          </Link>
+          </div> */}
+        <DialogContent className="h-[90vh] w-[80vw] max-w-[80vw]">
+          <DialogHeader>
+            <DialogTitle>Search filters</DialogTitle>
+            <DialogDescription>
+              Use the options below to narrow down your dream home!
+              <br />
+              Any unset filters will not be used. Such as zero-to-zero or
+              none-selected.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-full pr-2">
+            <div className="px-2">
+              <MonthlyRent {...commonProps} />
+              <SecurityDeposit {...commonProps} />
+              <SquareFeet {...commonProps} />
+              <Bedrooms {...commonProps} bedrooms={bedrooms} />
+              <Bathrooms {...commonProps} bathrooms={bathrooms} />
+              {/* TODO dates don't work probably, issue is likely in <ListingsList /> */}
+              <Available {...commonProps} />
+              <Pets {...commonProps} />
+              <Cities {...commonProps} cities={cities} />
+            </div>
+          </ScrollArea>
+          <DialogFooter className="flex gap-2">
+            <Link
+              className={cn(
+                buttonVariants({ variant: "default" }),
+                "rounded-xl",
+              )}
+              href={
+                pathName + "?" + createQueryParamsString(sp, filterForm(form))
+              }
+              onClick={() => {
+                setFiltersShown(false);
+                // setForm(defaultForm);
+              }}
+            >
+              apply
+            </Link>
+            <Link
+              className={cn(buttonVariants({ variant: "ghost" }), "rounded-xl")}
+              href={
+                pathName +
+                "?" +
+                createQueryParamsString({}, pageSize ? { pageSize } : {})
+              }
+              onClick={() => {
+                setFiltersShown(false);
+                setForm(defaultFormSchema);
+              }}
+            >
+              reset
+            </Link>
+            {/* <Button variant={"outline"} onClick={() => setFiltersShown(false)}>
+              cancel
+            </Button> */}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
@@ -383,7 +461,7 @@ const Available = ({ form, setForm }: CommonProps) => {
           }}
           className="w-32"
         /> */}
-        <Popover>
+        <Popover modal>
           <PopoverTrigger
             className={cn(
               buttonVariants({ variant: "outline" }),
@@ -397,6 +475,7 @@ const Available = ({ form, setForm }: CommonProps) => {
             side="right"
             avoidCollisions
             className="flex flex-col items-center justify-center"
+            // container={container}
           >
             <Calendar
               id="available-date-picker"
@@ -481,8 +560,8 @@ const Cities = ({ cities, ...props }: CommonProps & { cities: string[] }) => (
   <div>
     <Label className="text-lg">Cities</Label>
     <div className="text-sm text-muted-foreground">
-      These are all the 'cities' property managements are using for the current
-      listings
+      These are all the cities property managements are using for the current
+      listings (they may not all be actual cities).
     </div>
     <BadgesToggles
       {...props}

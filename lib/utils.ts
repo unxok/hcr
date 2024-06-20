@@ -133,3 +133,44 @@ export const createRange = (start: number, stop: number, step?: number) => {
   }
   return a;
 };
+
+/**
+ * Delete keys from an object that have a value present in `badValues`.
+ *
+ * If `replaceValue` is provided, that will replace the `badValues` keys instead of deleting.
+ * @param object The object to modify
+ * @param badValues Values where if present, the corresponding key will be deleted
+ * @param replaceValue If provided, will replace `badValues` keys instead of letting them be deleted.
+ * @returns The modified object with no `badValues` preset for any key
+ * ---
+ * ```js
+ *
+ * const obj = {good: 'hello', bad: 'world', foo: null, bar: true};
+ * filterObject(obj, 'world', null);
+ * // {good: 'hello', bar: true}
+ * ```
+ */
+export const filterObject = (
+  object: Record<string, any>,
+  badValues: any[],
+  replaceValue?: any,
+) => {
+  const obj = { ...object };
+  Object.keys(obj).forEach((k) => {
+    badValues.forEach((v) => {
+      if (obj[k] === v) {
+        if (replaceValue !== undefined) {
+          return (obj[k] = replaceValue);
+        }
+        delete obj[k];
+      }
+    });
+  });
+  return obj;
+};
+
+export const getDateFromSearchParams = <T>(searchParams: T, key: keyof T) => {
+  const val = searchParams[key] ?? "";
+  const pre = !val ? null : Array.isArray(val) ? val[0] : val;
+  return pre ? new Date(pre).toISOString() : null;
+};

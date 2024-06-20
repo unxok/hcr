@@ -21,11 +21,22 @@ export const searchParamsKeys = [
   "pageNumber",
   "sort",
   "asc",
+  "showFilters",
 ] as const;
 
 export type SearchParamKey = (typeof searchParamsKeys)[number];
 
-type ListingsColumn = keyof Database["public"]["Tables"]["listings"]["Row"];
+export type SearchParamObj<T = void> = Record<
+  SearchParamKey,
+  string | string[] | undefined | T
+>;
+
+export type ListingsColumn =
+  keyof Database["public"]["Tables"]["listings"]["Row"];
+
+export type ListingRow = Database["public"]["Tables"]["listings"]["Row"] & {
+  property_managements: Database["public"]["Tables"]["property_managements"]["Row"];
+};
 
 /***************** WEIRDNESS AHEAD ******************/
 

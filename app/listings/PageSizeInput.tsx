@@ -1,10 +1,10 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { defaultPageSize } from "@/lib/constants";
 import { createQueryParamsString, toNumber } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { defaultPageSize } from "./constants";
 
 export const PageSizeInput = ({
   searchParams,

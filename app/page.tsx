@@ -3,16 +3,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 import { Vortex } from "@/components/ui/vortex";
-import { supabase } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase";
 import { cn, toNumber } from "@/lib/utils";
 import { Clock, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
 export default async function Page() {
+  const supabase = createServerClient();
   const { data: pms } = await supabase.from("property_managements").select("*");
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-8 p-5">
+    <div className="flex size-full flex-col items-center justify-start gap-8 py-5">
       <div className="h-96 w-full overflow-hidden">
         <Vortex
           particleCount={100}
@@ -31,7 +32,7 @@ export default async function Page() {
           <Link
             href={"/listings"}
             className={cn(
-              buttonVariants({ variant: "default" }),
+              buttonVariants({ variant: "secondary" }),
               "animate-fade-up backdrop-blur-sm animate-delay-700",
             )}
           >
@@ -98,7 +99,7 @@ export default async function Page() {
           <br />
           <p className="text-muted-foreground">
             Signing up for an account will always be <u>free forever</u>. With
-            an account you'll be able to do things like:
+            an account you&apos;ll be able to do things like:
           </p>
           <ul className="list-disc pl-8">
             <li>Save your favorite listings</li>
@@ -229,7 +230,7 @@ export default async function Page() {
             className="text-primary"
             href="https://www.humboldt.edu/housing-reslife/off-campus/humboldt-county-property-managers"
           >
-            Cal Poly Humboldt's website
+            Cal Poly Humboldt&apos;s website
           </a>
           .
         </p>
@@ -247,6 +248,7 @@ export default async function Page() {
 }
 
 const BedroomAverages = async () => {
+  const supabase = createServerClient();
   const { data } = await supabase
     .from("current_stats_by_bedrooms")
     .select("bedrooms, avg_market_rent, median_market_rent, count");

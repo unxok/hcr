@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -236,7 +237,7 @@ export const Vortex = (props: VortexProps) => {
         resize(canvas, ctx);
       }
     });
-  }, []);
+  }, [setup, resize]);
 
   return (
     <div className={cn("relative h-full w-full", props.containerClassName)}>

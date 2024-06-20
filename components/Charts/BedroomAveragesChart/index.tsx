@@ -69,7 +69,7 @@ export const BedroomAveragesChart = ({
             className="hidden md:block"
           />
         </Bar>
-        <Bar dataKey={"avg_market_rent"} fill="hsl(var(--muted-foreground))">
+        <Bar dataKey={"avg_market_rent"} fill="hsl(var(--secondary))">
           <LabelList
             dataKey={"avg_market_rent"}
             position={"top"}

@@ -61,7 +61,8 @@
     --card-foreground: 90 75% 3%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --primary: 90 49% 63%;
+    /* --primary: 90 49% 63%; */
+    --primary: 90 49% 48%;
     --primary-foreground: 90 49% 3%;
     --secondary: 210 49% 63%;
     --secondary-foreground: 210 49% 3%;
