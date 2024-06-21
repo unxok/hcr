@@ -9,6 +9,37 @@ export default function Page({
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
+  const reg =
+    /(?<symbol>\W)|(?<upper>[A-Z])|(?<lower>[a-z])|(?<number>[0-9])/gm;
+  const regExp = new RegExp(reg);
+
+  const pw = "suP3rSecurePassword";
+  const isMin8 = pw.length >= 7;
+
+  const matches = Array.from(pw.matchAll(regExp));
+  const matchedGroups: string[] = [];
+  const unmatchedGroups: string[] = [];
+  isMin8
+    ? matchedGroups.push("minimumEight")
+    : unmatchedGroups.push("minimumEight");
+  matches.forEach((match) => {
+    Object.entries(match?.groups ?? {}).forEach(([key, value]) => {
+      if (matchedGroups.includes(key)) return;
+      if (value) {
+        matchedGroups.push(key);
+        return;
+      }
+      unmatchedGroups.push(key);
+    });
+  });
+
+  const finalUnmatchedGroups = [...new Set(unmatchedGroups)].filter(
+    (v) => !matchedGroups.includes(v),
+  );
+
+  console.log(matchedGroups);
+  console.log(finalUnmatchedGroups);
+
   const messages = searchParams["messages"];
   const messagesArr = messages
     ? Array.isArray(messages)

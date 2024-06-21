@@ -174,3 +174,17 @@ export const getDateFromSearchParams = <T>(searchParams: T, key: keyof T) => {
   const pre = !val ? null : Array.isArray(val) ? val[0] : val;
   return pre ? new Date(pre).toISOString() : null;
 };
+
+export const getCurrentUTC = () => {
+  const date = new Date();
+  const utc = Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    date.getHours(),
+    date.getMinutes(),
+    date.getSeconds(),
+    date.getMilliseconds(),
+  );
+  return utc;
+};

@@ -25,7 +25,7 @@ import {
   SortOption,
   ListingRow,
 } from "./constants";
-import { createServerClient } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase/server";
 
 export const ListingList = async ({
   searchParams,

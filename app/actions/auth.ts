@@ -1,6 +1,5 @@
 "use server";
 
-import { createServerClient } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -8,6 +7,7 @@ import {
   namedValidationMessages,
   validationMessages,
 } from "../auth/signup/constants";
+import { createServerClient } from "@/lib/supabase/server";
 
 const EmailSchema = z.string().email();
 
@@ -106,3 +106,19 @@ export async function signup(formData: FormData) {
   revalidatePath("/", "layout");
   redirect("/");
 }
+
+export const updateProfile = async (
+  initial: Record<string, any>,
+  f: FormData,
+) => {
+  "use server";
+  const un = f.get("username");
+  if (!un) {
+    return {
+      message: "Invalid",
+    };
+  }
+  return {
+    message: "Valid",
+  };
+};

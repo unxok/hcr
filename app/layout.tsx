@@ -9,8 +9,9 @@ import { MobileSideBar } from "@/components/MobileSideBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { createServerClient } from "@/lib/supabase";
 import { logout } from "./actions/auth";
+import { Toaster } from "@/components/ui/sonner";
+import { createServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "HCR | Welcome!",
@@ -31,7 +32,7 @@ export default async function RootLayout({
       className={`${GeistSans.variable} ${GeistMono.variable} dark box-border flex flex-col items-center justify-center transition-colors`}
     >
       <body
-        className="scrollbar-thin scrollbar-thumb-secondary scrollbar-track-background scrollbar-thumb-rounded-sm flex w-full justify-center overflow-y-scroll"
+        className="flex w-full justify-center overflow-y-scroll scrollbar-thin scrollbar-track-background scrollbar-thumb-secondary scrollbar-thumb-rounded-sm"
         // Should probably open an issue for the scrollbar plugin
         style={{ scrollbarColor: "unset", scrollbarWidth: "unset" }}
       >
@@ -124,6 +125,7 @@ export default async function RootLayout({
           </div>
         </main>
         {/* </ScrollArea> */}
+        <Toaster />
       </body>
     </html>
   );

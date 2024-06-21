@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 import { Vortex } from "@/components/ui/vortex";
-import { createServerClient } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase/server";
 import { cn, toNumber } from "@/lib/utils";
 import { Clock, UsersRound } from "lucide-react";
 import Link from "next/link";

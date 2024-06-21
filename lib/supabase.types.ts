@@ -20,17 +20,17 @@ export type Database = {
           address_state: string | null
           admin_hidden: boolean
           available_date: string | null
-          bathrooms: number | null
-          bedrooms: number | null
+          bathrooms: number
+          bedrooms: number
           cats: boolean | null
           created_at: string
           default_photo_thumbnail_url: string | null
-          deposit: number | null
+          deposit: number
           dogs: boolean | null
           full_address: string | null
           id: number
           listable_uid: string
-          market_rent: number | null
+          market_rent: number
           marketing_title: string | null
           photos: Json | null
           pm_listable_uid: string
@@ -49,17 +49,17 @@ export type Database = {
           address_state?: string | null
           admin_hidden?: boolean
           available_date?: string | null
-          bathrooms?: number | null
-          bedrooms?: number | null
+          bathrooms?: number
+          bedrooms?: number
           cats?: boolean | null
           created_at?: string
           default_photo_thumbnail_url?: string | null
-          deposit?: number | null
+          deposit?: number
           dogs?: boolean | null
           full_address?: string | null
           id?: number
           listable_uid: string
-          market_rent?: number | null
+          market_rent?: number
           marketing_title?: string | null
           photos?: Json | null
           pm_listable_uid: string
@@ -78,17 +78,17 @@ export type Database = {
           address_state?: string | null
           admin_hidden?: boolean
           available_date?: string | null
-          bathrooms?: number | null
-          bedrooms?: number | null
+          bathrooms?: number
+          bedrooms?: number
           cats?: boolean | null
           created_at?: string
           default_photo_thumbnail_url?: string | null
-          deposit?: number | null
+          deposit?: number
           dogs?: boolean | null
           full_address?: string | null
           id?: number
           listable_uid?: string
-          market_rent?: number | null
+          market_rent?: number
           marketing_title?: string | null
           photos?: Json | null
           pm_listable_uid?: string
@@ -103,6 +103,38 @@ export type Database = {
             columns: ["property_management_id"]
             isOneToOne: false
             referencedRelation: "property_managements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: number
+          profile_picture_url: string | null
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          profile_picture_url?: string | null
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          profile_picture_url?: string | null
+          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
